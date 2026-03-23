@@ -1,5 +1,6 @@
-export default function ProductMarginCalculator() {
-  const { useMemo, useState } = React;
+import React, { useMemo, useState } from 'react';
+
+export default function App() {
 
   const [inputs, setInputs] = useState({
     sellPrice: 100,
