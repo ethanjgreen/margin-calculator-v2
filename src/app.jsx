@@ -13,9 +13,12 @@ export default function App() {
     targetMarginPct: 53.8,
   });
 
-  const setField = (field, value) => {
-    setInputs((prev) => ({ ...prev, [field]: value }));
-  };
+const setField = (field, value) => {
+  setInputs((prev) => ({
+    ...prev,
+    [field]: value === '' ? '' : value
+  }));
+};
 
   const currency = (value) =>
     new Intl.NumberFormat('en-GB', {
@@ -90,8 +93,8 @@ export default function App() {
         <input
           type="number"
           step={step}
-          value={inputs[field]}
-          onChange={(e) => setField(field, e.target.value)}
+value={inputs[field] ?? ''}
+onChange={(e) => setField(field, e.target.value)}
           className={`w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 ${
             prefix ? 'pl-8' : ''
           } ${suffix ? 'pr-10' : ''}`}
