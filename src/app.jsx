@@ -42,12 +42,15 @@ export default function App() {
     const currentProfitPerUnit = sellPrice - currentTotalCost;
     const newProfitPerUnit = sellPrice - newTotalCost;
 
-    const currentMarginPct = sellPrice > 0 ? (currentProfitPerUnit / sellPrice) * 100 : 0;
-    const newMarginPct = sellPrice > 0 ? (newProfitPerUnit / sellPrice) * 100 : 0;
+    const currentMarginPct =
+      sellPrice > 0 ? (currentProfitPerUnit / sellPrice) * 100 : 0;
+    const newMarginPct =
+      sellPrice > 0 ? (newProfitPerUnit / sellPrice) * 100 : 0;
     const marginPointChange = newMarginPct - currentMarginPct;
 
     const annualProfitImpact = costIncreasePerTopLevel * annualVolume;
-    const requiredSellPrice = targetMarginPct < 1 ? newTotalCost / (1 - targetMarginPct) : 0;
+    const requiredSellPrice =
+      targetMarginPct < 1 ? newTotalCost / (1 - targetMarginPct) : 0;
     const sellPriceIncreaseNeeded = requiredSellPrice - sellPrice;
 
     const fixedCostExcludingThisComponent =
@@ -77,29 +80,39 @@ export default function App() {
 
   const NumberInput = ({ label, field, prefix, suffix, step = '0.01' }) => (
     <label className="grid gap-2">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-300">{label}</span>
       <div className="relative">
-        {prefix ? <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{prefix}</span> : null}
+        {prefix ? (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            {prefix}
+          </span>
+        ) : null}
         <input
           type="number"
           step={step}
           value={inputs[field]}
           onChange={(e) => setField(field, e.target.value)}
-          className={`w-full rounded-2xl border border-slate-700/60 bg-slate-950/70 px-4 py-3 text-white shadow-sm outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-10' : ''}`}
+          className={`w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 ${
+            prefix ? 'pl-8' : ''
+          } ${suffix ? 'pr-10' : ''}`}
         />
-        {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{suffix}</span> : null}
+        {suffix ? (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+            {suffix}
+          </span>
+        ) : null}
       </div>
     </label>
   );
 
   const TextInput = ({ label, field }) => (
     <label className="grid gap-2">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-300">{label}</span>
       <input
         type="text"
         value={inputs[field]}
         onChange={(e) => setField(field, e.target.value)}
-        className="w-full rounded-2xl border border-slate-700/60 bg-slate-950/70 px-4 py-3 text-white shadow-sm outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30"
+        className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30"
       />
     </label>
   );
@@ -113,9 +126,13 @@ export default function App() {
     };
 
     return (
-      <div className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone]}`}>
+      <div
+        className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone]}`}
+      >
         <div className="text-sm text-slate-300">{title}</div>
-        <div className="mt-2 text-3xl font-semibold tracking-tight text-white">{value}</div>
+        <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
+          {value}
+        </div>
         {subtext ? <div className="mt-2 text-sm text-slate-400">{subtext}</div> : null}
       </div>
     );
@@ -145,8 +162,9 @@ export default function App() {
                   Top-Level Margin Impact Calculator
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-                  Built for procurement decisions. See exactly how a component price increase affects top-level profit,
-                  margin erosion, annual impact, and the sell price required to recover target margin.
+                  Built for procurement decisions. See exactly how a component price
+                  increase affects top-level profit, margin erosion, annual impact, and
+                  the sell price required to recover target margin.
                 </p>
               </div>
 
@@ -161,11 +179,15 @@ export default function App() {
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>Current margin</span>
-                  <span className="font-semibold text-emerald-300">{pct(results.currentMarginPct)}</span>
+                  <span className="font-semibold text-emerald-300">
+                    {pct(results.currentMarginPct)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>New margin</span>
-                  <span className="font-semibold text-amber-300">{pct(results.newMarginPct)}</span>
+                  <span className="font-semibold text-amber-300">
+                    {pct(results.newMarginPct)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -176,7 +198,9 @@ export default function App() {
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold text-white">Inputs</h2>
-                  <p className="mt-1 text-sm text-slate-400">Enter current top-level economics and the revised component price.</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Enter current top-level economics and the revised component price.
+                  </p>
                 </div>
                 <div className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-400">
                   Lean costing
@@ -187,12 +211,32 @@ export default function App() {
                 <TextInput label="Top-level part number" field="topLevelPart" />
                 <TextInput label="Component part number" field="componentPart" />
                 <NumberInput label="Top-level sell price" field="sellPrice" prefix="£" />
-                <NumberInput label="Current total top-level cost" field="currentTotalCost" prefix="£" />
-                <NumberInput label="Current component unit cost" field="currentComponentCost" prefix="£" />
-                <NumberInput label="New component unit cost" field="newComponentCost" prefix="£" />
-                <NumberInput label="Quantity per assembly" field="qtyPerAssembly" step="1" />
+                <NumberInput
+                  label="Current total top-level cost"
+                  field="currentTotalCost"
+                  prefix="£"
+                />
+                <NumberInput
+                  label="Current component unit cost"
+                  field="currentComponentCost"
+                  prefix="£"
+                />
+                <NumberInput
+                  label="New component unit cost"
+                  field="newComponentCost"
+                  prefix="£"
+                />
+                <NumberInput
+                  label="Quantity per assembly"
+                  field="qtyPerAssembly"
+                  step="1"
+                />
                 <NumberInput label="Annual volume" field="annualVolume" step="1" />
-                <NumberInput label="Target margin" field="targetMarginPct" suffix="%" />
+                <NumberInput
+                  label="Target margin"
+                  field="targetMarginPct"
+                  suffix="%"
+                />
               </div>
             </div>
 
@@ -213,7 +257,9 @@ export default function App() {
                 <MetricCard
                   title="Cost increase per top level"
                   value={currency(results.costIncreasePerTopLevel)}
-                  subtext={`${inputs.qtyPerAssembly} × ${currency(results.componentIncreaseEach)} increase`}
+                  subtext={`${inputs.qtyPerAssembly} × ${currency(
+                    results.componentIncreaseEach
+                  )} increase`}
                   tone="info"
                 />
                 <MetricCard
@@ -229,23 +275,33 @@ export default function App() {
                 <div className="mt-4 grid gap-3 text-sm text-slate-300">
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Margin change</span>
-                    <span className="font-semibold text-amber-300">{results.marginPointChange.toFixed(1)} pts</span>
+                    <span className="font-semibold text-amber-300">
+                      {results.marginPointChange.toFixed(1)} pts
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>New total cost</span>
-                    <span className="font-semibold text-white">{currency(results.newTotalCost)}</span>
+                    <span className="font-semibold text-white">
+                      {currency(results.newTotalCost)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Sell price needed to recover target margin</span>
-                    <span className="font-semibold text-cyan-300">{currency(results.requiredSellPrice)}</span>
+                    <span className="font-semibold text-cyan-300">
+                      {currency(results.requiredSellPrice)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Required sell price increase</span>
-                    <span className="font-semibold text-cyan-300">{currency(results.sellPriceIncreaseNeeded)}</span>
+                    <span className="font-semibold text-cyan-300">
+                      {currency(results.sellPriceIncreaseNeeded)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Max acceptable component cost</span>
-                    <span className="font-semibold text-emerald-300">{currency(results.maxAcceptableComponentCost)}</span>
+                    <span className="font-semibold text-emerald-300">
+                      {currency(results.maxAcceptableComponentCost)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -256,15 +312,23 @@ export default function App() {
                   <table className="min-w-full divide-y divide-slate-800 text-sm">
                     <thead className="bg-slate-950/80">
                       <tr>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Line item</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-400">Value</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">
+                          Line item
+                        </th>
+                        <th className="px-4 py-3 text-right font-medium text-slate-400">
+                          Value
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 bg-slate-950/40">
                       {rows.map(([label, value]) => (
                         <tr key={label}>
                           <td className="px-4 py-3 text-slate-300">{label}</td>
-                          <td className={`px-4 py-3 text-right font-semibold ${value >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                          <td
+                            className={`px-4 py-3 text-right font-semibold ${
+                              value >= 0 ? 'text-emerald-300' : 'text-rose-300'
+                            }`}
+                          >
                             {currency(value)}
                           </td>
                         </tr>
