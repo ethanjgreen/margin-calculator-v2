@@ -1,0 +1,295 @@
+import { useMemo, useState } from 'react'
+
+export default function ProductMarginCalculator() {
+  const [inputs, setInputs] = useState({
+    sellPrice: 100,
+    unitCost: 45,
+    shippingCost: 5,
+    packagingCost: 2,
+    marketplaceFeePct: 12,
+    paymentFeePct: 2.9,
+    paymentFixedFee: 0.3,
+    discountPct: 0,
+    vatPct: 20,
+    includeVATInSellPrice: true,
+    overheadPerUnit: 3,
+    adCostPerUnit: 4,
+    returnsAllowancePct: 1.5,
+    taxPct: 0,
+    units: 100,
+  })
+
+  const setField = (field, value) => {
+    setInputs((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const currency = (value) =>
+    new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      maximumFractionDigits: 2,
+    }).format(Number.isFinite(value) ? value : 0)
+
+  const pct = (value) => `${(Number.isFinite(value) ? value : 0).toFixed(1)}%`
+
+  const results = useMemo(() => {
+    const sellPrice = Number(inputs.sellPrice) || 0
+    const unitCost = Number(inputs.unitCost) || 0
+    const shippingCost = Number(inputs.shippingCost) || 0
+    const packagingCost = Number(inputs.packagingCost) || 0
+    const marketplaceFeePct = (Number(inputs.marketplaceFeePct) || 0) / 100
+    const paymentFeePct = (Number(inputs.paymentFeePct) || 0) / 100
+    const paymentFixedFee = Number(inputs.paymentFixedFee) || 0
+    const discountPct = (Number(inputs.discountPct) || 0) / 100
+    const vatPct = (Number(inputs.vatPct) || 0) / 100
+    const overheadPerUnit = Number(inputs.overheadPerUnit) || 0
+    const adCostPerUnit = Number(inputs.adCostPerUnit) || 0
+    const returnsAllowancePct = (Number(inputs.returnsAllowancePct) || 0) / 100
+    const taxPct = (Number(inputs.taxPct) || 0) / 100
+    const units = Number(inputs.units) || 0
+
+    const discountedSellPrice = sellPrice * (1 - discountPct)
+    const netSellPriceExVAT = inputs.includeVATInSellPrice
+      ? discountedSellPrice / (1 + vatPct)
+      : discountedSellPrice
+    const vatAmount = inputs.includeVATInSellPrice
+      ? discountedSellPrice - netSellPriceExVAT
+      : netSellPriceExVAT * vatPct
+
+    const marketplaceFee = discountedSellPrice * marketplaceFeePct
+    const paymentFee = discountedSellPrice * paymentFeePct + paymentFixedFee
+    const returnsAllowance = discountedSellPrice * returnsAllowancePct
+
+    const totalVariableCosts =
+      unitCost +
+      shippingCost +
+      packagingCost +
+      marketplaceFee +
+      paymentFee +
+      overheadPerUnit +
+      adCostPerUnit +
+      returnsAllowance
+
+    const contributionPerUnit = netSellPriceExVAT - totalVariableCosts
+    const grossProfitPerUnit = netSellPriceExVAT - (unitCost + shippingCost + packagingCost)
+    const grossMarginPct = netSellPriceExVAT > 0 ? (grossProfitPerUnit / netSellPriceExVAT) * 100 : 0
+    const netMarginPct = netSellPriceExVAT > 0 ? (contributionPerUnit / netSellPriceExVAT) * 100 : 0
+    const profitAfterTaxPerUnit = contributionPerUnit * (1 - taxPct)
+
+    const revenueTotal = netSellPriceExVAT * units
+    const totalProfit = contributionPerUnit * units
+    const totalProfitAfterTax = profitAfterTaxPerUnit * units
+
+    const breakEvenSellPriceExVATDenominator = 1 - marketplaceFeePct - paymentFeePct - returnsAllowancePct
+    const breakEvenSellPriceExVAT =
+      breakEvenSellPriceExVATDenominator > 0
+        ? (unitCost + shippingCost + packagingCost + overheadPerUnit + adCostPerUnit + paymentFixedFee) /
+          breakEvenSellPriceExVATDenominator
+        : 0
+
+    const breakEvenSellPriceIncVAT = inputs.includeVATInSellPrice
+      ? breakEvenSellPriceExVAT * (1 + vatPct)
+      : breakEvenSellPriceExVAT
+
+    return {
+      discountedSellPrice,
+      netSellPriceExVAT,
+      vatAmount,
+      marketplaceFee,
+      paymentFee,
+      returnsAllowance,
+      totalVariableCosts,
+      grossProfitPerUnit,
+      grossMarginPct,
+      contributionPerUnit,
+      netMarginPct,
+      profitAfterTaxPerUnit,
+      revenueTotal,
+      totalProfit,
+      totalProfitAfterTax,
+      breakEvenSellPriceExVAT,
+      breakEvenSellPriceIncVAT,
+    }
+  }, [inputs])
+
+  const resetExample = () => {
+    setInputs({
+      sellPrice: 100,
+      unitCost: 45,
+      shippingCost: 5,
+      packagingCost: 2,
+      marketplaceFeePct: 12,
+      paymentFeePct: 2.9,
+      paymentFixedFee: 0.3,
+      discountPct: 0,
+      vatPct: 20,
+      includeVATInSellPrice: true,
+      overheadPerUnit: 3,
+      adCostPerUnit: 4,
+      returnsAllowancePct: 1.5,
+      taxPct: 0,
+      units: 100,
+    })
+  }
+
+  const NumberInput = ({ label, field, step = '0.01', suffix, prefix }) => (
+    <label className="grid gap-2">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <div className="relative">
+        {prefix ? <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">{prefix}</span> : null}
+        <input
+          type="number"
+          step={step}
+          value={inputs[field]}
+          onChange={(e) => setField(field, e.target.value)}
+          className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-10' : ''}`}
+        />
+        {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">{suffix}</span> : null}
+      </div>
+    </label>
+  )
+
+  const MetricCard = ({ title, value, subtext }) => (
+    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <div className="text-sm text-slate-500">{title}</div>
+      <div className="mt-2 text-2xl font-semibold text-slate-900">{value}</div>
+      {subtext ? <div className="mt-1 text-sm text-slate-500">{subtext}</div> : null}
+    </div>
+  )
+
+  const lineItems = [
+    ['Net selling price (ex VAT)', results.netSellPriceExVAT],
+    ['Unit cost', -Number(inputs.unitCost || 0)],
+    ['Shipping', -Number(inputs.shippingCost || 0)],
+    ['Packaging', -Number(inputs.packagingCost || 0)],
+    ['Marketplace fee', -results.marketplaceFee],
+    ['Payment fee', -results.paymentFee],
+    ['Overhead per unit', -Number(inputs.overheadPerUnit || 0)],
+    ['Ad cost per unit', -Number(inputs.adCostPerUnit || 0)],
+    ['Returns allowance', -results.returnsAllowance],
+    ['Net profit per unit', results.contributionPerUnit],
+  ]
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-4 md:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Product Margin Calculator</h1>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Model revenue, fees, VAT, overhead, returns, and profit per unit. Adjust the inputs to see your true margin and break-even selling price.
+            </p>
+          </div>
+          <button
+            onClick={resetExample}
+            className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+          >
+            Reset example
+          </button>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 className="text-xl font-semibold text-slate-900">Inputs</h2>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <NumberInput label="Selling price" field="sellPrice" prefix="£" />
+              <NumberInput label="Discount" field="discountPct" suffix="%" />
+              <NumberInput label="Unit cost" field="unitCost" prefix="£" />
+              <NumberInput label="Shipping cost" field="shippingCost" prefix="£" />
+              <NumberInput label="Packaging cost" field="packagingCost" prefix="£" />
+              <NumberInput label="Overhead per unit" field="overheadPerUnit" prefix="£" />
+              <NumberInput label="Ad cost per unit" field="adCostPerUnit" prefix="£" />
+              <NumberInput label="Marketplace fee" field="marketplaceFeePct" suffix="%" />
+              <NumberInput label="Payment fee" field="paymentFeePct" suffix="%" />
+              <NumberInput label="Fixed payment fee" field="paymentFixedFee" prefix="£" />
+              <NumberInput label="Returns allowance" field="returnsAllowancePct" suffix="%" />
+              <NumberInput label="VAT" field="vatPct" suffix="%" />
+              <NumberInput label="Tax on profit" field="taxPct" suffix="%" />
+              <NumberInput label="Units" field="units" step="1" />
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+              <label className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-medium text-slate-900">Selling price includes VAT</div>
+                  <div className="text-sm text-slate-500">Turn this off if your selling price is already ex VAT.</div>
+                </div>
+                <button
+                  onClick={() => setField('includeVATInSellPrice', !inputs.includeVATInSellPrice)}
+                  className={`relative h-8 w-14 rounded-full transition ${inputs.includeVATInSellPrice ? 'bg-slate-900' : 'bg-slate-300'}`}
+                >
+                  <span
+                    className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${inputs.includeVATInSellPrice ? 'left-7' : 'left-1'}`}
+                  />
+                </button>
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <MetricCard title="Net profit per unit" value={currency(results.contributionPerUnit)} subtext={`Net margin ${pct(results.netMarginPct)}`} />
+              <MetricCard title="Gross profit per unit" value={currency(results.grossProfitPerUnit)} subtext={`Gross margin ${pct(results.grossMarginPct)}`} />
+              <MetricCard title="Total profit" value={currency(results.totalProfit)} subtext={`${inputs.units} units`} />
+              <MetricCard title="Break-even sell price" value={currency(results.breakEvenSellPriceIncVAT)} subtext={inputs.includeVATInSellPrice ? 'Including VAT' : 'Excluding VAT'} />
+            </div>
+
+            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <h2 className="text-xl font-semibold text-slate-900">Profit breakdown</h2>
+              <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-slate-200">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium text-slate-600">Line item</th>
+                      <th className="px-4 py-3 text-right font-medium text-slate-600">Per unit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {lineItems.map(([label, value]) => (
+                      <tr key={label}>
+                        <td className="px-4 py-3 text-slate-700">{label}</td>
+                        <td className={`px-4 py-3 text-right font-medium ${value >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {currency(value)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <h2 className="text-xl font-semibold text-slate-900">Summary</h2>
+              <div className="mt-4 grid gap-3 text-sm text-slate-700">
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Discounted selling price</span>
+                  <span className="font-medium">{currency(results.discountedSellPrice)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>VAT amount per unit</span>
+                  <span className="font-medium">{currency(results.vatAmount)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Total variable cost per unit</span>
+                  <span className="font-medium">{currency(results.totalVariableCosts)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Total revenue ex VAT</span>
+                  <span className="font-medium">{currency(results.revenueTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Profit after tax per unit</span>
+                  <span className="font-medium">{currency(results.profitAfterTaxPerUnit)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                  <span>Total profit after tax</span>
+                  <span className="font-medium">{currency(results.totalProfitAfterTax)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
