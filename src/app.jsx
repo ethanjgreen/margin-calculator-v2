@@ -45,21 +45,26 @@ function TextInput({ label, value, onChange }) {
 
 function MetricCard({ title, value, subtext, tone = 'neutral' }) {
   const toneMap = {
-    positive: 'from-emerald-500/20 to-emerald-400/5 border-emerald-500/30',
-    warning: 'from-amber-500/20 to-amber-400/5 border-amber-500/30',
-    info: 'from-cyan-500/20 to-cyan-400/5 border-cyan-500/30',
+    green: 'from-emerald-500/20 to-emerald-400/5 border-emerald-500/30',
+    amber: 'from-amber-500/20 to-amber-400/5 border-amber-500/30',
+    red: 'from-rose-600/25 to-red-500/10 border-red-500/40',
     neutral: 'from-slate-700/40 to-slate-800/20 border-slate-700/60',
   };
 
   return (
-    <div className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone]}`}>
+    <div className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone] || toneMap.neutral}`}>
       <div className="text-sm text-slate-300">{title}</div>
-      <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
-        {value}
-      </div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight text-white">{value}</div>
       {subtext ? <div className="mt-2 text-sm text-slate-400">{subtext}</div> : null}
     </div>
   );
+}
+
+function statusTextClass(status) {
+  if (status === 'green') return 'text-emerald-300';
+  if (status === 'amber') return 'text-amber-300';
+  if (status === 'red') return 'text-red-300';
+  return 'text-white';
 }
 
 export default function App() {
@@ -107,15 +112,12 @@ export default function App() {
     const currentProfitPerUnit = sellPrice - currentTotalCost;
     const newProfitPerUnit = sellPrice - newTotalCost;
 
-    const currentMarginPct =
-      sellPrice > 0 ? (currentProfitPerUnit / sellPrice) * 100 : 0;
-    const newMarginPct =
-      sellPrice > 0 ? (newProfitPerUnit / sellPrice) * 100 : 0;
+    const currentMarginPct = sellPrice > 0 ? (currentProfitPerUnit / sellPrice) * 100 : 0;
+    const newMarginPct = sellPrice > 0 ? (newProfitPerUnit / sellPrice) * 100 : 0;
     const marginPointChange = newMarginPct - currentMarginPct;
 
     const annualProfitImpact = costIncreasePerTopLevel * annualVolume;
-    const requiredSellPrice =
-      targetMarginPct < 1 ? newTotalCost / (1 - targetMarginPct) : 0;
+    const requiredSellPrice = targetMarginPct < 1 ? newTotalCost / (1 - targetMarginPct) : 0;
     const sellPriceIncreaseNeeded = requiredSellPrice - sellPrice;
 
     const fixedCostExcludingThisComponent =
@@ -126,6 +128,19 @@ export default function App() {
       qtyPerAssembly > 0
         ? (maxAcceptableTotalCost - fixedCostExcludingThisComponent) / qtyPerAssembly
         : 0;
+
+    const getMarginStatus = (marginPct) => {
+      if (marginPct < 15) return 'red';
+      if (marginPct < 30) return 'amber';
+      return 'green';
+    };
+
+    const currentMarginStatus = getMarginStatus(currentMarginPct);
+    const newMarginStatus = getMarginStatus(newMarginPct);
+    const costIncreaseStatus = costIncreasePerTopLevel > 0 ? 'red' : costIncreasePerTopLevel === 0 ? 'amber' : 'green';
+    const annualImpactStatus = annualProfitImpact > 0 ? 'red' : annualProfitImpact === 0 ? 'amber' : 'green';
+    const marginChangeStatus = marginPointChange < 0 ? 'red' : marginPointChange === 0 ? 'amber' : 'green';
+    const sellPriceIncreaseStatus = sellPriceIncreaseNeeded > 0 ? 'red' : sellPriceIncreaseNeeded === 0 ? 'amber' : 'green';
 
     return {
       componentIncreaseEach,
@@ -140,6 +155,12 @@ export default function App() {
       requiredSellPrice,
       sellPriceIncreaseNeeded,
       maxAcceptableComponentCost,
+      currentMarginStatus,
+      newMarginStatus,
+      costIncreaseStatus,
+      annualImpactStatus,
+      marginChangeStatus,
+      sellPriceIncreaseStatus,
     };
   }, [inputs]);
 
@@ -167,9 +188,7 @@ export default function App() {
                   Top-Level Margin Impact Calculator
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-                  Built for procurement decisions. See exactly how a component price
-                  increase affects top-level profit, margin erosion, annual impact, and
-                  the sell price required to recover target margin.
+                  Built for procurement decisions. See exactly how a component price increase affects top-level profit, margin erosion, annual impact, and the sell price required to recover target margin.
                 </p>
               </div>
 
@@ -184,13 +203,13 @@ export default function App() {
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>Current margin</span>
-                  <span className="font-semibold text-emerald-300">
+                  <span className={`font-semibold ${statusTextClass(results.currentMarginStatus)}`}>
                     {pct(results.currentMarginPct)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>New margin</span>
-                  <span className="font-semibold text-amber-300">
+                  <span className={`font-semibold ${statusTextClass(results.newMarginStatus)}`}>
                     {pct(results.newMarginPct)}
                   </span>
                 </div>
@@ -208,7 +227,7 @@ export default function App() {
                   </p>
                 </div>
                 <div className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                  Lean costing
+                  RAG status enabled
                 </div>
               </div>
 
@@ -274,27 +293,25 @@ export default function App() {
                   title="Current profit per unit"
                   value={currency(results.currentProfitPerUnit)}
                   subtext={`Current margin ${pct(results.currentMarginPct)}`}
-                  tone="positive"
+                  tone={results.currentMarginStatus}
                 />
                 <MetricCard
                   title="New profit per unit"
                   value={currency(results.newProfitPerUnit)}
                   subtext={`New margin ${pct(results.newMarginPct)}`}
-                  tone="warning"
+                  tone={results.newMarginStatus}
                 />
                 <MetricCard
                   title="Cost increase per top level"
                   value={currency(results.costIncreasePerTopLevel)}
-                  subtext={`${inputs.qtyPerAssembly} × ${currency(
-                    results.componentIncreaseEach
-                  )} increase`}
-                  tone="info"
+                  subtext={`${inputs.qtyPerAssembly} × ${currency(results.componentIncreaseEach)} increase`}
+                  tone={results.costIncreaseStatus}
                 />
                 <MetricCard
                   title="Annual profit impact"
                   value={currency(results.annualProfitImpact)}
                   subtext={`${inputs.annualVolume} units per year`}
-                  tone="neutral"
+                  tone={results.annualImpactStatus}
                 />
               </div>
 
@@ -303,25 +320,25 @@ export default function App() {
                 <div className="mt-4 grid gap-3 text-sm text-slate-300">
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Margin change</span>
-                    <span className="font-semibold text-amber-300">
+                    <span className={`font-semibold ${statusTextClass(results.marginChangeStatus)}`}>
                       {results.marginPointChange.toFixed(1)} pts
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>New total cost</span>
-                    <span className="font-semibold text-white">
+                    <span className={`font-semibold ${statusTextClass(results.costIncreaseStatus)}`}>
                       {currency(results.newTotalCost)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Sell price needed to recover target margin</span>
-                    <span className="font-semibold text-cyan-300">
+                    <span className={`font-semibold ${statusTextClass(results.sellPriceIncreaseStatus)}`}>
                       {currency(results.requiredSellPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
                     <span>Required sell price increase</span>
-                    <span className="font-semibold text-cyan-300">
+                    <span className={`font-semibold ${statusTextClass(results.sellPriceIncreaseStatus)}`}>
                       {currency(results.sellPriceIncreaseNeeded)}
                     </span>
                   </div>
