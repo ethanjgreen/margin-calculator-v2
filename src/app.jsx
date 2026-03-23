@@ -1,5 +1,67 @@
 import React, { useMemo, useState } from 'react';
 
+function NumberInput({ label, value, onChange, prefix, suffix, step = '0.01' }) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-sm font-medium text-slate-300">{label}</span>
+      <div className="relative">
+        {prefix ? (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            {prefix}
+          </span>
+        ) : null}
+        <input
+          type="number"
+          step={step}
+          value={value ?? ''}
+          onChange={onChange}
+          className={`w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 ${
+            prefix ? 'pl-8' : ''
+          } ${suffix ? 'pr-10' : ''}`}
+        />
+        {suffix ? (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+            {suffix}
+          </span>
+        ) : null}
+      </div>
+    </label>
+  );
+}
+
+function TextInput({ label, value, onChange }) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-sm font-medium text-slate-300">{label}</span>
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={onChange}
+        className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30"
+      />
+    </label>
+  );
+}
+
+function MetricCard({ title, value, subtext, tone = 'neutral' }) {
+  const toneMap = {
+    positive: 'from-emerald-500/20 to-emerald-400/5 border-emerald-500/30',
+    warning: 'from-amber-500/20 to-amber-400/5 border-amber-500/30',
+    info: 'from-cyan-500/20 to-cyan-400/5 border-cyan-500/30',
+    neutral: 'from-slate-700/40 to-slate-800/20 border-slate-700/60',
+  };
+
+  return (
+    <div className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone]}`}>
+      <div className="text-sm text-slate-300">{title}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
+        {value}
+      </div>
+      {subtext ? <div className="mt-2 text-sm text-slate-400">{subtext}</div> : null}
+    </div>
+  );
+}
+
 export default function App() {
   const [inputs, setInputs] = useState({
     topLevelPart: 'TOP-1001',
@@ -13,12 +75,12 @@ export default function App() {
     targetMarginPct: 53.8,
   });
 
-const setField = (field, value) => {
-  setInputs((prev) => ({
-    ...prev,
-    [field]: value === '' ? '' : value
-  }));
-};
+  const setField = (field, value) => {
+    setInputs((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const currency = (value) =>
     new Intl.NumberFormat('en-GB', {
@@ -80,66 +142,6 @@ const setField = (field, value) => {
       maxAcceptableComponentCost,
     };
   }, [inputs]);
-
-  const NumberInput = ({ label, field, prefix, suffix, step = '0.01' }) => (
-    <label className="grid gap-2">
-      <span className="text-sm font-medium text-slate-300">{label}</span>
-      <div className="relative">
-        {prefix ? (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-            {prefix}
-          </span>
-        ) : null}
-        <input
-          type="number"
-          step={step}
-value={inputs[field] ?? ''}
-onChange={(e) => setField(field, e.target.value)}
-          className={`w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 ${
-            prefix ? 'pl-8' : ''
-          } ${suffix ? 'pr-10' : ''}`}
-        />
-        {suffix ? (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-            {suffix}
-          </span>
-        ) : null}
-      </div>
-    </label>
-  );
-
-  const TextInput = ({ label, field }) => (
-    <label className="grid gap-2">
-      <span className="text-sm font-medium text-slate-300">{label}</span>
-      <input
-        type="text"
-        value={inputs[field]}
-        onChange={(e) => setField(field, e.target.value)}
-        className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30"
-      />
-    </label>
-  );
-
-  const MetricCard = ({ title, value, subtext, tone = 'neutral' }) => {
-    const toneMap = {
-      positive: 'from-emerald-500/20 to-emerald-400/5 border-emerald-500/30',
-      warning: 'from-amber-500/20 to-amber-400/5 border-amber-500/30',
-      info: 'from-cyan-500/20 to-cyan-400/5 border-cyan-500/30',
-      neutral: 'from-slate-700/40 to-slate-800/20 border-slate-700/60',
-    };
-
-    return (
-      <div
-        className={`rounded-3xl border bg-gradient-to-br p-5 shadow-lg ${toneMap[tone]}`}
-      >
-        <div className="text-sm text-slate-300">{title}</div>
-        <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
-          {value}
-        </div>
-        {subtext ? <div className="mt-2 text-sm text-slate-400">{subtext}</div> : null}
-      </div>
-    );
-  };
 
   const rows = [
     ['Top-level sell price', inputs.sellPrice],
@@ -211,33 +213,56 @@ onChange={(e) => setField(field, e.target.value)}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <TextInput label="Top-level part number" field="topLevelPart" />
-                <TextInput label="Component part number" field="componentPart" />
-                <NumberInput label="Top-level sell price" field="sellPrice" prefix="£" />
+                <TextInput
+                  label="Top-level part number"
+                  value={inputs.topLevelPart}
+                  onChange={(e) => setField('topLevelPart', e.target.value)}
+                />
+                <TextInput
+                  label="Component part number"
+                  value={inputs.componentPart}
+                  onChange={(e) => setField('componentPart', e.target.value)}
+                />
+                <NumberInput
+                  label="Top-level sell price"
+                  value={inputs.sellPrice}
+                  onChange={(e) => setField('sellPrice', e.target.value)}
+                  prefix="£"
+                />
                 <NumberInput
                   label="Current total top-level cost"
-                  field="currentTotalCost"
+                  value={inputs.currentTotalCost}
+                  onChange={(e) => setField('currentTotalCost', e.target.value)}
                   prefix="£"
                 />
                 <NumberInput
                   label="Current component unit cost"
-                  field="currentComponentCost"
+                  value={inputs.currentComponentCost}
+                  onChange={(e) => setField('currentComponentCost', e.target.value)}
                   prefix="£"
                 />
                 <NumberInput
                   label="New component unit cost"
-                  field="newComponentCost"
+                  value={inputs.newComponentCost}
+                  onChange={(e) => setField('newComponentCost', e.target.value)}
                   prefix="£"
                 />
                 <NumberInput
                   label="Quantity per assembly"
-                  field="qtyPerAssembly"
+                  value={inputs.qtyPerAssembly}
+                  onChange={(e) => setField('qtyPerAssembly', e.target.value)}
                   step="1"
                 />
-                <NumberInput label="Annual volume" field="annualVolume" step="1" />
+                <NumberInput
+                  label="Annual volume"
+                  value={inputs.annualVolume}
+                  onChange={(e) => setField('annualVolume', e.target.value)}
+                  step="1"
+                />
                 <NumberInput
                   label="Target margin"
-                  field="targetMarginPct"
+                  value={inputs.targetMarginPct}
+                  onChange={(e) => setField('targetMarginPct', e.target.value)}
                   suffix="%"
                 />
               </div>
